@@ -25,24 +25,24 @@ func main() {
 	}
 
 	path := args[0]
-	body, err := ioutil.ReadFile(path)
-	if err != nil {
-		log.Fatalf("error reading file: %v\n", err)
-	}
-	mime := mimetype.Detect(body)
-	log.Printf("read file %s with mimetype %s\n", path, mime)
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if verbose {
 			log.Printf("[%s] %s\n", r.RequestURI, r.RemoteAddr)
 		}
+
+		body, err := ioutil.ReadFile(path)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		mime := mimetype.Detect(body)
 
 		w.Header().Set("Content-Type", mime.String())
 		w.Write(body)
 	})
 
 	log.Printf("starting http server on %s\n", addr)
-	err = http.ListenAndServe(addr, nil)
+	err := http.ListenAndServe(addr, nil)
 	if err != nil {
 		log.Printf("error starting http server: %v\n", err)
 	}
